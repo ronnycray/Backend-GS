@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:13.4-alpine
+    container_name: dev_database_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: 11991199
+      POSTGRES_DB: dev_gainsystem_db
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+
+  gainsystem-api:
+    image: gainsystem-api:latest
+    container_name: dev_gainsystem_api
+    build:
+      context: api
+    ports:
+      - 8000:8000
+    volumes:
+      - ./api:/app:cached
+    working_dir: /app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dev_user:11991199@postgres:5432/dev_gainsystem_db
+      API_URL: "http://127.0.0.1:8000"
+      ECHO_DB: "True"
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      REFRESH_TOKEN_EXPIRE_MINUTES: 43200
+      ALGORITHM: "HS256"
+      BYTES_REFRESH_TOKEN: 100
+      SECRET_KEY: "EDD6C2C4E917F287BD72DC77F253B439A71EE656CDB4FA6"
+    tty: true
+    stdin_open: true
+    depends_on:
+      - postgres
+volumes:
+  postgres-data:
